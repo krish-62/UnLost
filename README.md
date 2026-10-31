@@ -91,11 +91,12 @@ Make sure Java reports version 17.
 
 ## 2. Download the project
 
-Clone the repository and enter the project directory:
+Clone the repository into your home directory and enter the project directory:
 
 ```bash
+cd "$HOME"
 git clone https://github.com/krish-62/CampusFInd.git
-cd CampusFInd
+cd "$HOME/CampusFInd"
 ```
 
 ## 3. Set up MariaDB
