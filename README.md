@@ -22,29 +22,48 @@ CampusFind is a beginner-friendly full-stack campus Lost & Found application bui
 
 ## 1. Set up the database
 
-Run the schema from the project root:
+Create the database and a dedicated local application account. On the Arch Linux setup used for development, run:
 
 ```bash
-mysql -u root -p < database.sql
+sudo mariadb
 ```
 
-On MariaDB installations where root authentication uses the local socket, you may instead use:
+At the MariaDB prompt, run:
+
+```sql
+CREATE DATABASE IF NOT EXISTS campusfind;
+CREATE USER IF NOT EXISTS 'campus_user'@'localhost' IDENTIFIED BY '';
+ALTER USER 'campus_user'@'localhost' IDENTIFIED BY '';
+GRANT SELECT, INSERT, UPDATE ON campusfind.* TO 'campus_user'@'localhost';
+FLUSH PRIVILEGES;
+EXIT;
+```
+
+The application account intentionally has an empty password so the local development app does not ask for a database password. It is restricted to connections from `localhost` and has only the privileges needed by this application.
+
+Import the table schema from the project root:
 
 ```bash
-sudo mariadb < database.sql
+sudo mariadb campusfind < database.sql
 ```
 
-Create a dedicated application database user with only the privileges required by the application (SELECT, INSERT and UPDATE on the `campusfind` database). Avoid using the database root account for the web application.
+You can test the application account without a password prompt:
 
-## 2. Configure database credentials safely
+```bash
+mariadb -u campus_user campusfind
+```
 
-The application reads these environment variables in the Tomcat service process:
+## 2. Database connection settings
 
-- `CAMPUSFIND_DB_URL` — optional; defaults to `jdbc:mysql://localhost:3306/campusfind?useSSL=false&serverTimezone=UTC`.
-- `CAMPUSFIND_DB_USER` — required.
-- `CAMPUSFIND_DB_PASSWORD` — required.
+By default, `Database.java` connects using:
 
-Configure them for the Tomcat service using your operating system's service configuration. For systemd-based installations, a service drop-in can define environment variables. Do not paste real credentials into source code, commit them, or place them in a tracked file. The `.env.example` file contains placeholders only; Tomcat does not automatically load it.
+- URL: `jdbc:mysql://localhost:3306/campusfind?useSSL=false&serverTimezone=UTC`
+- Username: `campus_user`
+- Password: empty
+
+You can optionally override the URL or username with `CAMPUSFIND_DB_URL` or `CAMPUSFIND_DB_USER`. No database password environment variable is used by this local-development configuration.
+
+**Security warning:** An account with an empty password is acceptable only for a local learning environment. Keep MariaDB bound to localhost, do not expose port 3306 to your network or the internet, and do not reuse this setup on a production server. For deployment on a shared or public server, use a strong password, secret management, and a restricted database account.
 
 ## 3. Build
 
@@ -82,7 +101,7 @@ This project uses Jakarta Servlet 6 and is intended for Tomcat 10.1; it is not d
 
 ## Security and project scope
 
-This is a learning/classroom prototype. It does not implement user login or role-based authorization: anyone who can reach the application can submit reports and change an item's returned status. Before any public deployment, add authentication, authorization, abuse/rate limiting, privacy protections for contact details, and a security review. Keep credentials outside source control and use a least-privilege database account.
+This is a learning/classroom prototype. It does not implement user login or role-based authorization: anyone who can reach the application can submit reports and change an item's returned status. Before any public deployment, add authentication, authorization, abuse/rate limiting, privacy protections for contact details, and a security review.
 
 ## Repository layout
 
