@@ -7,7 +7,6 @@ const searchButton = document.getElementById("search-button");
 const reportForm = document.getElementById("report-form");
 const formMessage = document.getElementById("form-message");
 
-// Ask the Java backend for the reports.
 async function loadItems() {
     itemsList.innerHTML = '<p class="message">Loading reports...</p>';
 
@@ -31,7 +30,6 @@ async function loadItems() {
     }
 }
 
-// Build report cards using DOM elements.
 function showItems(items) {
     itemCount.textContent = `${items.length} report${items.length === 1 ? "" : "s"}`;
 
@@ -94,7 +92,6 @@ function showItems(items) {
     });
 }
 
-// Submit the form to the Java servlet.
 reportForm.addEventListener("submit", async function(event) {
     event.preventDefault();
 
@@ -130,7 +127,6 @@ reportForm.addEventListener("submit", async function(event) {
     }
 });
 
-// Mark a recovered item as returned.
 async function markReturned(id) {
     if (!confirm("Has this item been returned to its owner?")) return;
 
