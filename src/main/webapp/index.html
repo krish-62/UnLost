@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Campus Lost & Found</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header class="site-header">
+        <div class="header-inner">
+            <a class="logo" href="#">Campus<span>Find</span></a>
+            <nav>
+                <a href="#items">Browse items</a>
+                <a href="#report">Report an item</a>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <section class="hero">
+            <p class="eyebrow">A little help goes a long way</p>
+            <h1>Lost something?<br><span>Let's find it.</span></h1>
+            <p class="hero-text">A simple place for our campus community to report lost things and return found belongings.</p>
+            <a class="primary-button" href="#report">Report an item</a>
+        </section>
+
+        <section class="page-section" id="items">
+            <div class="section-heading">
+                <div>
+                    <p class="eyebrow">Community board</p>
+                    <h2>Recent reports</h2>
+                </div>
+                <span id="item-count" class="count">Loading...</span>
+            </div>
+
+            <div class="filters">
+                <input id="search" type="search" placeholder="Search item, place or details...">
+                <select id="type-filter" aria-label="Filter by report type">
+                    <option value="All">Lost and Found</option>
+                    <option value="Lost">Lost only</option>
+                    <option value="Found">Found only</option>
+                </select>
+                <select id="category-filter" aria-label="Filter by category">
+                    <option value="All">All categories</option>
+                    <option>Accessories</option>
+                    <option>Books & Notes</option>
+                    <option>Cards & IDs</option>
+                    <option>Electronics</option>
+                    <option>Keys</option>
+                    <option>Wallets & Bags</option>
+                    <option>Other</option>
+                </select>
+                <button id="search-button" class="dark-button" type="button">Search</button>
+            </div>
+
+            <div id="items-list" class="items-grid">
+                <p class="message">Loading reports...</p>
+            </div>
+        </section>
+
+        <section class="report-section" id="report">
+            <div class="report-intro">
+                <p class="eyebrow">Help someone out</p>
+                <h2>Report a lost or found item</h2>
+                <p>Share a few details so the owner can recognise the item and contact you.</p>
+                <div class="small-note">Please avoid posting passwords, full ID numbers, or other sensitive details.</div>
+            </div>
+
+            <form id="report-form" class="report-form">
+                <div class="form-row">
+                    <div class="field">
+                        <label for="type">Report type *</label>
+                        <select id="type" name="type" required>
+                            <option value="Lost">I lost something</option>
+                            <option value="Found">I found something</option>
+                        </select>
+                    </div>
+                    <div class="field">
+                        <label for="name">Item name *</label>
+                        <input id="name" name="name" maxlength="80" placeholder="e.g. Blue water bottle" required>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="field">
+                        <label for="category">Category *</label>
+                        <select id="category" name="category" required>
+                            <option value="">Choose a category</option>
+                            <option>Accessories</option>
+                            <option>Books & Notes</option>
+                            <option>Cards & IDs</option>
+                            <option>Electronics</option>
+                            <option>Keys</option>
+                            <option>Wallets & Bags</option>
+                            <option>Other</option>
+                        </select>
+                    </div>
+                    <div class="field">
+                        <label for="item_date">Date lost or found *</label>
+                        <input id="item_date" name="item_date" type="date" required>
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label for="description">Description *</label>
+                    <textarea id="description" name="description" rows="3" maxlength="500"
+                        placeholder="Colour, brand or other details that help identify it" required></textarea>
+                </div>
+
+                <div class="form-row">
+                    <div class="field">
+                        <label for="location">Location *</label>
+                        <input id="location" name="location" maxlength="120"
+                            placeholder="e.g. Library, second floor" required>
+                    </div>
+                    <div class="field">
+                        <label for="contact">Contact information *</label>
+                        <input id="contact" name="contact" maxlength="120"
+                            placeholder="Email or phone number" required>
+                    </div>
+                </div>
+
+                <button class="primary-button" type="submit">Submit report</button>
+                <p id="form-message" class="form-message" role="status"></p>
+            </form>
+        </section>
+    </main>
+
+    <footer>
+        <p>CampusFind · Made for our campus community</p>
+        <p class="footer-small">A student mini project for learning full-stack web development.</p>
+    </footer>
+
+    <script src="app.js"></script>
+</body>
+</html>
