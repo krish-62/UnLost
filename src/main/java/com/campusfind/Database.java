@@ -4,11 +4,6 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 
-/**
- * Opens a local development database connection.
- * The dedicated campus_user account is intentionally configured with
- * an empty password for this localhost-only student project.
- */
 public final class Database {
     private static final String URL = envOrDefault(
             "CAMPUSFIND_DB_URL",
@@ -20,7 +15,6 @@ public final class Database {
     );
 
     private Database() {
-        // Utility class
     }
 
     public static Connection getConnection() throws SQLException {
@@ -30,8 +24,6 @@ public final class Database {
             throw new SQLException("MySQL JDBC driver not found.", e);
         }
 
-        // Empty password: MariaDB must have campus_user@localhost configured
-        // with no password. This is intended for local development only.
         return DriverManager.getConnection(URL, USER, "");
     }
 
