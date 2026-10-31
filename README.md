@@ -1,109 +1,254 @@
-# CampusFind — Java Lost & Found Mini Project
+# CampusFind
 
-CampusFind is a beginner-friendly full-stack campus Lost & Found application built with HTML, CSS, JavaScript, Java Servlets, JDBC, MySQL/MariaDB, Maven and Apache Tomcat 10.1.
+CampusFind is a campus Lost & Found web application built with HTML, CSS, JavaScript, Java Servlets, JDBC, MariaDB/MySQL, Maven and Apache Tomcat 10.1.
 
 ## Features
 
 - Submit Lost and Found reports.
-- Store reports in MySQL/MariaDB.
-- Search by item name, location or description.
-- Filter by report type and category.
-- Display item date, location and contact details.
+- Browse and search item reports.
+- Filter reports by type and category.
+- View item descriptions, locations, dates and contact details.
 - Mark an item as returned.
-- Responsive desktop and mobile layout.
+- Responsive frontend for desktop and mobile browsers.
 
 ## Requirements
 
-- Java JDK 17 or newer
-- Maven
-- MySQL or MariaDB
-- Apache Tomcat 10.1 (Jakarta Servlet 6)
+- Linux operating system
+- Java JDK 17
+- Apache Maven
+- MariaDB Server
+- Git and curl
+- Apache Tomcat 10.1
 - A modern web browser
 
-## 1. Set up the database
+The commands below cover common Linux distributions. Choose the section matching your distribution, then continue with the shared installation steps. For another distribution, install the equivalent Java 17 JDK, Maven, MariaDB Server, Git and curl packages using its package manager.
 
-Create the database and a dedicated local application account. On the Arch Linux setup used for development, run:
+## 1. Install the required packages
 
-```bash
-sudo mariadb
-```
-
-At the MariaDB prompt, run:
-
-```sql
-CREATE DATABASE IF NOT EXISTS campusfind;
-CREATE USER IF NOT EXISTS 'campus_user'@'localhost' IDENTIFIED BY '';
-ALTER USER 'campus_user'@'localhost' IDENTIFIED BY '';
-GRANT SELECT, INSERT, UPDATE ON campusfind.* TO 'campus_user'@'localhost';
-FLUSH PRIVILEGES;
-EXIT;
-```
-
-The application account intentionally has an empty password so the local development app does not ask for a database password. It is restricted to connections from `localhost` and has only the privileges needed by this application.
-
-Import the table schema from the project root:
+### Debian, Ubuntu, Linux Mint and other APT-based distributions
 
 ```bash
-sudo mariadb campusfind < database.sql
+sudo apt update
+sudo apt install -y openjdk-17-jdk maven mariadb-server git curl
 ```
 
-You can test the application account without a password prompt:
+### Fedora, RHEL, Rocky Linux and AlmaLinux
 
 ```bash
-mariadb -u campus_user campusfind
+sudo dnf install -y java-17-openjdk-devel maven mariadb-server git curl
 ```
 
-## 2. Database connection settings
+### Arch Linux and Arch-based distributions
 
-By default, `Database.java` connects using:
+```bash
+sudo pacman -Syu --needed jdk17-openjdk maven mariadb git curl
+```
 
-- URL: `jdbc:mysql://localhost:3306/campusfind?useSSL=false&serverTimezone=UTC`
-- Username: `campus_user`
-- Password: empty
+On a brand-new Arch Linux installation, initialize MariaDB once before starting it:
 
-You can optionally override the URL or username with `CAMPUSFIND_DB_URL` or `CAMPUSFIND_DB_USER`. No database password environment variable is used by this local-development configuration.
+```bash
+sudo mariadb-install-db --user=mysql --basedir=/usr --datadir=/var/lib/mysql
+```
 
-**Security warning:** An account with an empty password is acceptable only for a local learning environment. Keep MariaDB bound to localhost, do not expose port 3306 to your network or the internet, and do not reuse this setup on a production server. For deployment on a shared or public server, use a strong password, secret management, and a restricted database account.
+Do not run the initialization command again on an existing database installation.
 
-## 3. Build
+### openSUSE
 
-From the directory containing `pom.xml`:
+```bash
+sudo zypper refresh
+sudo zypper install -y java-17-openjdk-devel maven mariadb git curl
+```
+
+### Alpine Linux
+
+```bash
+sudo apk update
+sudo apk add openjdk17 maven mariadb mariadb-client git curl
+sudo rc-service mariadb setup
+sudo rc-update add mariadb default
+sudo rc-service mariadb start
+```
+
+On systemd-based distributions, start MariaDB with:
+
+```bash
+sudo systemctl enable --now mariadb
+```
+
+On distributions that use a different service manager, start and enable MariaDB using that distribution's service commands.
+
+Verify the tools:
+
+```bash
+java -version
+mvn -version
+mariadb --version
+git --version
+curl --version
+```
+
+Make sure Java reports version 17.
+
+## 2. Download the project
+
+Clone the repository and enter the project directory:
+
+```bash
+git clone https://github.com/krish-62/CampusFInd.git
+cd CampusFInd
+```
+
+## 3. Set up MariaDB
+
+Start the MariaDB service if it is not already running. Then create the database and table from the project SQL file:
+
+```bash
+sudo mariadb < database.sql
+```
+
+Create the application account:
+
+```bash
+sudo mariadb -e "CREATE USER IF NOT EXISTS 'campus_user'@'localhost' IDENTIFIED BY ''; ALTER USER 'campus_user'@'localhost' IDENTIFIED BY ''; GRANT SELECT, INSERT, UPDATE ON campusfind.* TO 'campus_user'@'localhost'; FLUSH PRIVILEGES;"
+```
+
+Test the account:
+
+```bash
+mariadb -u campus_user campusfind -e "SELECT 1; SHOW TABLES;"
+```
+
+The application uses the local MariaDB account `campus_user` with an empty password. This means the application does not prompt for a database password.
+
+**Security:** This passwordless account is only for a local learning environment. Keep MariaDB accessible only from the same computer. Do not expose port 3306 to a network or the internet, and do not use this configuration on a shared or production server.
+
+## 4. Install Apache Tomcat 10.1
+
+The project uses Jakarta Servlet 6 and requires Tomcat 10.1. The following commands install Tomcat in your home directory, so they work independently of the Linux distribution and do not require a system Tomcat package.
+
+```bash
+TOMCAT_VERSION=10.1.61
+cd "$HOME"
+curl -fLO "https://downloads.apache.org/tomcat/tomcat-10/v${TOMCAT_VERSION}/bin/apache-tomcat-${TOMCAT_VERSION}.tar.gz"
+tar -xzf "apache-tomcat-${TOMCAT_VERSION}.tar.gz"
+mv "apache-tomcat-${TOMCAT_VERSION}" "$HOME/tomcat10"
+export CATALINA_HOME="$HOME/tomcat10"
+```
+
+Keep using the same terminal for the remaining commands in this guide. If you open a new terminal later, set the Tomcat location again:
+
+```bash
+export CATALINA_HOME="$HOME/tomcat10"
+```
+
+## 5. Build the application
+
+From the project directory, run:
 
 ```bash
 mvn clean package
 ```
 
-Maven creates `target/campusfind.war` when the build succeeds.
-
-## 4. Deploy to Tomcat 10.1
-
-Copy `target/campusfind.war` into Tomcat's `webapps` directory and start/restart Tomcat using your installation's service or scripts. For a manual Tomcat installation, the deployment directory is typically:
+When the build succeeds, Maven creates:
 
 ```text
-$CATALINA_HOME/webapps/
+target/campusfind.war
 ```
 
-Open the application at:
+## 6. Deploy and start CampusFind
+
+Copy the generated WAR file into Tomcat's web application directory:
+
+```bash
+cp target/campusfind.war "$CATALINA_HOME/webapps/"
+```
+
+Start Tomcat:
+
+```bash
+"$CATALINA_HOME/bin/startup.sh"
+```
+
+Tomcat automatically deploys the WAR file. Open the application in your browser:
 
 ```text
 http://localhost:8080/campusfind/
 ```
 
-This project uses Jakarta Servlet 6 and is intended for Tomcat 10.1; it is not directly compatible with Tomcat 9's older javax.servlet API.
+Test the backend API:
 
-## 5. How it works
+```bash
+curl -i http://localhost:8080/campusfind/api/items
+```
 
-1. The browser loads `index.html`, `style.css` and `app.js`.
-2. JavaScript sends requests to the `/api/items` servlet endpoint.
-3. `ItemServlet` validates requests and uses JDBC prepared statements to query or update the database.
-4. The servlet returns JSON for the frontend to render.
-5. Submitting a report sends a POST request; marking an item returned sends a PATCH request.
+A successful API request returns `HTTP 200` and a JSON array. If there are no reports yet, the response is an empty array: `[]`.
 
-## Security and project scope
+## 7. Stop Tomcat
 
-This is a learning/classroom prototype. It does not implement user login or role-based authorization: anyone who can reach the application can submit reports and change an item's returned status. Before any public deployment, add authentication, authorization, abuse/rate limiting, privacy protections for contact details, and a security review.
+To stop the local server:
 
-## Repository layout
+```bash
+"$CATALINA_HOME/bin/shutdown.sh"
+```
+
+If you open a new terminal, set `CATALINA_HOME` again before using the Tomcat scripts.
+
+## 8. Updating the project
+
+When you want to download the latest repository changes:
+
+```bash
+cd "$HOME/CampusFInd"
+git pull
+mvn clean package
+cp target/campusfind.war "$CATALINA_HOME/webapps/"
+```
+
+If Tomcat is already running, stop it before replacing the WAR, remove the previously extracted application directory, copy the new WAR and start Tomcat again:
+
+```bash
+"$CATALINA_HOME/bin/shutdown.sh"
+rm -rf "$CATALINA_HOME/webapps/campusfind"
+cp target/campusfind.war "$CATALINA_HOME/webapps/"
+"$CATALINA_HOME/bin/startup.sh"
+```
+
+## Troubleshooting
+
+### MariaDB is not running
+
+On systemd-based distributions:
+
+```bash
+sudo systemctl status mariadb
+sudo systemctl start mariadb
+```
+
+### Check the database account and table
+
+```bash
+mariadb -u campus_user campusfind -e "SELECT COUNT(*) FROM items;"
+```
+
+### Check the API
+
+```bash
+curl -i http://localhost:8080/campusfind/api/items
+```
+
+### Check whether port 8080 is already in use
+
+```bash
+ss -ltnp | grep ':8080'
+```
+
+### View Tomcat logs
+
+```bash
+tail -n 100 "$CATALINA_HOME/logs/catalina.out"
+```
+
+## Project structure
 
 ```text
 CampusFInd/
@@ -117,3 +262,7 @@ CampusFInd/
     ├── index.html
     └── style.css
 ```
+
+## Project limitations
+
+This is a learning project. It does not currently include user login or role-based access control. Anyone who can access the application can submit reports and change an item's status. Do not expose this instance to the public internet. Add authentication, authorization, input-abuse controls and appropriate privacy protections before deploying it for real campus-wide use.
