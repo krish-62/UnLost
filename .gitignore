@@ -1,14 +1,11 @@
-# Maven build output
 target/
 
-# Local secrets and environment configuration
 .env
 .env.*
 !.env.example
 *.local.properties
 application-local.properties
 
-# IDE/editor files
 .idea/
 .vscode/
 *.iml
@@ -16,7 +13,6 @@ application-local.properties
 .classpath
 .settings/
 
-# Logs and temporary files
 *.log
 *.tmp
 .DS_Store
