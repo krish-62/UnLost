@@ -23,7 +23,6 @@ import java.util.Map;
 public class ItemServlet extends HttpServlet {
     private final ObjectMapper mapper = new ObjectMapper();
 
-    // GET /api/items - list open reports, with optional filters.
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
@@ -98,7 +97,6 @@ public class ItemServlet extends HttpServlet {
         }
     }
 
-    // POST /api/items - create a report.
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
@@ -175,7 +173,6 @@ public class ItemServlet extends HttpServlet {
         }
     }
 
-    // PATCH /api/items/{id}/returned - mark an item as returned.
     @Override
     protected void service(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
