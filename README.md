@@ -1,6 +1,6 @@
-# CampusFind
+# UnLost
 
-CampusFind is a campus Lost & Found web application built with HTML, CSS, JavaScript, Java Servlets, JDBC, MariaDB/MySQL, Maven and Apache Tomcat 10.1.
+UnLost is a campus Lost & Found web application built with HTML, CSS, JavaScript, Java Servlets, JDBC, MariaDB/MySQL, Maven and Apache Tomcat 10.1.
 
 ## Features
 
@@ -21,7 +21,7 @@ CampusFind is a campus Lost & Found web application built with HTML, CSS, JavaSc
 - Apache Tomcat 10.1
 - A modern web browser
 
-The commands below cover common Linux distributions. Choose the section matching your distribution, then continue with the shared installation steps. For another distribution, install the equivalent Java 17 JDK, Maven, MariaDB Server, Git and curl packages using its package manager.
+The package commands below cover common Linux distributions. Choose the section matching your distribution, then continue with the shared installation steps. For another distribution, install the equivalent Java 17 JDK, Maven, MariaDB Server, Git and curl packages using its package manager.
 
 ## 1. Install the required packages
 
@@ -91,13 +91,15 @@ Make sure Java reports version 17.
 
 ## 2. Download the project
 
-Clone the repository into your home directory and enter the project directory:
+Clone the GitHub repository and enter the project directory:
 
 ```bash
 cd "$HOME"
-git clone https://github.com/krish-62/CampusFInd.git
-cd "$HOME/CampusFInd"
+git clone https://github.com/krish-62/CampusFInd.git UnLost
+cd "$HOME/UnLost"
 ```
+
+The GitHub repository URL currently retains its original repository name. The project, source package, database, Maven artifact and deployed application are named UnLost.
 
 ## 3. Set up MariaDB
 
@@ -110,16 +112,16 @@ sudo mariadb < database.sql
 Create the application account:
 
 ```bash
-sudo mariadb -e "CREATE USER IF NOT EXISTS 'campus_user'@'localhost' IDENTIFIED BY ''; ALTER USER 'campus_user'@'localhost' IDENTIFIED BY ''; GRANT SELECT, INSERT, UPDATE ON campusfind.* TO 'campus_user'@'localhost'; FLUSH PRIVILEGES;"
+sudo mariadb -e "CREATE USER IF NOT EXISTS 'unlost_user'@'localhost' IDENTIFIED BY ''; ALTER USER 'unlost_user'@'localhost' IDENTIFIED BY ''; GRANT SELECT, INSERT, UPDATE ON unlost.* TO 'unlost_user'@'localhost'; FLUSH PRIVILEGES;"
 ```
 
 Test the account:
 
 ```bash
-mariadb -u campus_user campusfind -e "SELECT 1; SHOW TABLES;"
+mariadb -u unlost_user unlost -e "SELECT 1; SHOW TABLES;"
 ```
 
-The application uses the local MariaDB account `campus_user` with an empty password. This means the application does not prompt for a database password.
+The application uses the local MariaDB account `unlost_user` with an empty password. This means the application does not prompt for a database password.
 
 **Security:** This passwordless account is only for a local learning environment. Keep MariaDB accessible only from the same computer. Do not expose port 3306 to a network or the internet, and do not use this configuration on a shared or production server.
 
@@ -153,15 +155,15 @@ mvn clean package
 When the build succeeds, Maven creates:
 
 ```text
-target/campusfind.war
+target/unlost.war
 ```
 
-## 6. Deploy and start CampusFind
+## 6. Deploy and start UnLost
 
 Copy the generated WAR file into Tomcat's web application directory:
 
 ```bash
-cp target/campusfind.war "$CATALINA_HOME/webapps/"
+cp target/unlost.war "$CATALINA_HOME/webapps/"
 ```
 
 Start Tomcat:
@@ -173,13 +175,13 @@ Start Tomcat:
 Tomcat automatically deploys the WAR file. Open the application in your browser:
 
 ```text
-http://localhost:8080/campusfind/
+http://localhost:8080/unlost/
 ```
 
 Test the backend API:
 
 ```bash
-curl -i http://localhost:8080/campusfind/api/items
+curl -i http://localhost:8080/unlost/api/items
 ```
 
 A successful API request returns `HTTP 200` and a JSON array. If there are no reports yet, the response is an empty array: `[]`.
@@ -199,18 +201,17 @@ If you open a new terminal, set `CATALINA_HOME` again before using the Tomcat sc
 When you want to download the latest repository changes:
 
 ```bash
-cd "$HOME/CampusFInd"
+cd "$HOME/UnLost"
 git pull
 mvn clean package
-cp target/campusfind.war "$CATALINA_HOME/webapps/"
 ```
 
 If Tomcat is already running, stop it before replacing the WAR, remove the previously extracted application directory, copy the new WAR and start Tomcat again:
 
 ```bash
 "$CATALINA_HOME/bin/shutdown.sh"
-rm -rf "$CATALINA_HOME/webapps/campusfind"
-cp target/campusfind.war "$CATALINA_HOME/webapps/"
+rm -rf "$CATALINA_HOME/webapps/unlost"
+cp target/unlost.war "$CATALINA_HOME/webapps/"
 "$CATALINA_HOME/bin/startup.sh"
 ```
 
@@ -228,13 +229,13 @@ sudo systemctl start mariadb
 ### Check the database account and table
 
 ```bash
-mariadb -u campus_user campusfind -e "SELECT COUNT(*) FROM items;"
+mariadb -u unlost_user unlost -e "SELECT COUNT(*) FROM items;"
 ```
 
 ### Check the API
 
 ```bash
-curl -i http://localhost:8080/campusfind/api/items
+curl -i http://localhost:8080/unlost/api/items
 ```
 
 ### Check whether port 8080 is already in use
@@ -252,10 +253,10 @@ tail -n 100 "$CATALINA_HOME/logs/catalina.out"
 ## Project structure
 
 ```text
-CampusFInd/
+UnLost/
 ├── database.sql
 ├── pom.xml
-├── src/main/java/com/campusfind/
+├── src/main/java/com/unlost/
 │   ├── Database.java
 │   └── ItemServlet.java
 └── src/main/webapp/
