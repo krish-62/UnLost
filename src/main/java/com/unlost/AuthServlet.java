@@ -9,6 +9,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.security.SecureRandom;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -17,6 +19,7 @@ import java.sql.SQLException;
 import java.util.Base64;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Locale;
 import java.util.regex.Pattern;
 
 @WebServlet("/api/auth/*")
@@ -32,6 +35,7 @@ public class AuthServlet extends HttpServlet {
             throws IOException {
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
+        response.setHeader("Cache-Control", "no-store");
 
         if (!"/me".equals(request.getPathInfo())) {
             sendError(response, 404, "Endpoint not found.");
@@ -67,6 +71,7 @@ public class AuthServlet extends HttpServlet {
             throws IOException {
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
+        response.setHeader("Cache-Control", "no-store");
         request.setCharacterEncoding("UTF-8");
 
         String path = request.getPathInfo();
@@ -87,8 +92,8 @@ public class AuthServlet extends HttpServlet {
         if (body == null) return;
 
         String username = value(body, "username");
-        String email = value(body, "email").toLowerCase();
-        String password = value(body, "password");
+        String email = value(body, "email").toLowerCase(Locale.ROOT);
+        String password = rawValue(body, "password");
 
         if (!USERNAME_PATTERN.matcher(username).matches()) {
             sendError(response, 400, "Username must be 3 to 30 characters and use only letters, numbers or underscores.");
@@ -144,7 +149,7 @@ public class AuthServlet extends HttpServlet {
         if (body == null) return;
 
         String login = value(body, "login");
-        String password = value(body, "password");
+        String password = rawValue(body, "password");
 
         if (login.isBlank() || password.isBlank()) {
             sendError(response, 400, "Enter your username or email and password.");
@@ -227,7 +232,9 @@ public class AuthServlet extends HttpServlet {
         String sentToken = request.getHeader("X-CSRF-Token");
         return savedToken instanceof String
                 && sentToken != null
-                && ((String) savedToken).equals(sentToken);
+                && MessageDigest.isEqual(
+                        ((String) savedToken).getBytes(StandardCharsets.UTF_8),
+                        sentToken.getBytes(StandardCharsets.UTF_8));
     }
 
     private JsonNode readBody(HttpServletRequest request, HttpServletResponse response)
@@ -243,6 +250,11 @@ public class AuthServlet extends HttpServlet {
     private String value(JsonNode body, String field) {
         JsonNode node = body == null ? null : body.get(field);
         return node == null || node.isNull() ? "" : node.asText().trim();
+    }
+
+    private String rawValue(JsonNode body, String field) {
+        JsonNode node = body == null ? null : body.get(field);
+        return node == null || node.isNull() ? "" : node.asText();
     }
 
     private String createToken() {
