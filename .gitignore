@@ -2,17 +2,10 @@ target/
 
 .env
 .env.*
-!.env.example
-*.local.properties
-application-local.properties
 
 .idea/
 .vscode/
 *.iml
-.project
-.classpath
-.settings/
 
 *.log
-*.tmp
 .DS_Store
