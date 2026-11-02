@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign in | UnLost</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="auth-page">
+    <header class="site-header">
+        <div class="header-inner">
+            <a class="logo" href="index.html">Un<span>Lost</span></a>
+            <nav><a href="index.html">Back to reports</a></nav>
+        </div>
+    </header>
+
+    <main class="auth-main">
+        <section class="auth-card">
+            <p class="eyebrow">Welcome to UnLost</p>
+            <h1 id="auth-heading">Sign in</h1>
+            <p class="auth-subtitle">Sign in to manage your reports or create an account to get started.</p>
+
+            <div class="auth-tabs">
+                <button id="show-login" class="auth-tab active" type="button">Sign in</button>
+                <button id="show-register" class="auth-tab" type="button">Create account</button>
+            </div>
+
+            <form id="login-form">
+                <div class="field">
+                    <label for="login">Username or email</label>
+                    <input id="login" name="login" autocomplete="username" required>
+                </div>
+                <div class="field">
+                    <label for="login-password">Password</label>
+                    <input id="login-password" name="password" type="password" autocomplete="current-password" required>
+                </div>
+                <button class="primary-button full-button" type="submit">Sign in</button>
+            </form>
+
+            <form id="register-form" hidden>
+                <div class="field">
+                    <label for="username">Username</label>
+                    <input id="username" name="username" minlength="3" maxlength="30"
+                        pattern="[A-Za-z0-9_]{3,30}" autocomplete="username" required>
+                    <small>3–30 characters: letters, numbers and underscores.</small>
+                </div>
+                <div class="field">
+                    <label for="email">Email</label>
+                    <input id="email" name="email" type="email" maxlength="254" autocomplete="email" required>
+                </div>
+                <div class="field">
+                    <label for="register-password">Password</label>
+                    <input id="register-password" name="password" type="password" minlength="8"
+                        maxlength="128" autocomplete="new-password" required>
+                    <small>Use at least 8 characters.</small>
+                </div>
+                <button class="primary-button full-button" type="submit">Create account</button>
+            </form>
+
+            <p id="auth-message" class="form-message" role="status"></p>
+        </section>
+    </main>
+
+    <script src="auth.js"></script>
+</body>
+</html>
