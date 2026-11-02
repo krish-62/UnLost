@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My reports | UnLost</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header class="site-header">
+        <div class="header-inner">
+            <a class="logo" href="index.html">Un<span>Lost</span></a>
+            <nav>
+                <a href="index.html">Browse items</a>
+                <a href="index.html#report">Report an item</a>
+                <button id="logout-button" class="text-button" type="button">Sign out</button>
+            </nav>
+        </div>
+    </header>
+
+    <main class="page-section">
+        <div class="section-heading">
+            <div>
+                <p class="eyebrow">Your account</p>
+                <h1>My reports</h1>
+                <p class="section-description">Only you can resolve or delete reports created by your account.</p>
+            </div>
+            <a class="primary-button" href="index.html#report">Create a report</a>
+        </div>
+        <div id="my-reports-list" class="items-grid">
+            <p class="message">Loading your reports...</p>
+        </div>
+        <p id="my-reports-message" class="form-message" role="status"></p>
+    </main>
+
+    <footer>
+        <p>UnLost · Made for our campus community</p>
+    </footer>
+
+    <script src="my-reports.js"></script>
+</body>
+</html>
