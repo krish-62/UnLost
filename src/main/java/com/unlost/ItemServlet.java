@@ -303,7 +303,6 @@ public class ItemServlet extends HttpServlet {
         }
     }
 
-    @Override
     protected void doPatch(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
         response.setContentType("application/json");
