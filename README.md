@@ -4,12 +4,14 @@ UnLost is a campus Lost & Found web application built with HTML, CSS, JavaScript
 
 ## Features
 
-- Submit Lost and Found reports.
-- Browse and search item reports.
-- Filter reports by type and category.
-- View item descriptions, locations, dates and contact details.
-- Mark an item as returned.
-- Responsive frontend for desktop and mobile browsers.
+- Register and sign in with a username or email and password.
+- Store passwords as salted PBKDF2 hashes.
+- Browse, search and filter open Lost and Found reports.
+- Upload a JPG, PNG or WEBP photo with a report (up to 5 MB).
+- View reports submitted by the signed-in account.
+- Only the account that created a report can mark it as resolved or delete it.
+- Resolved reports are removed from the public reports page.
+- Keep resolved reports in the owner's report history.
 
 ## Requirements
 
@@ -20,8 +22,6 @@ UnLost is a campus Lost & Found web application built with HTML, CSS, JavaScript
 - Git and curl
 - Apache Tomcat 10.1
 - A modern web browser
-
-The package commands below cover common Linux distributions. Choose the section matching your distribution, then continue with the shared installation steps. For another distribution, install the equivalent Java 17 JDK, Maven, MariaDB Server, Git and curl packages using its package manager.
 
 ## 1. Install the required packages
 
@@ -91,43 +91,83 @@ Make sure Java reports version 17.
 
 ## 2. Download the project
 
-Clone the GitHub repository and enter the project directory:
-
 ```bash
 cd "$HOME"
-git clone https://github.com/krish-62/CampusFInd.git UnLost
+git clone https://github.com/krish-62/UnLost.git
 cd "$HOME/UnLost"
 ```
 
-The GitHub repository URL currently retains its original repository name. The project, source package, database, Maven artifact and deployed application are named UnLost.
+## 3. Set up MariaDB for a new installation
 
-## 3. Set up MariaDB
-
-Start the MariaDB service if it is not already running. Then create the database and table from the project SQL file:
+Run the schema:
 
 ```bash
 sudo mariadb < database.sql
 ```
 
-Create the application account:
+Create the local application account and grant only the permissions used by the application:
 
 ```bash
-sudo mariadb -e "CREATE USER IF NOT EXISTS 'unlost_user'@'localhost' IDENTIFIED BY ''; ALTER USER 'unlost_user'@'localhost' IDENTIFIED BY ''; GRANT SELECT, INSERT, UPDATE ON unlost.* TO 'unlost_user'@'localhost'; FLUSH PRIVILEGES;"
+sudo mariadb <<'SQL'
+CREATE USER IF NOT EXISTS 'unlost_user'@'localhost' IDENTIFIED BY '';
+ALTER USER 'unlost_user'@'localhost' IDENTIFIED BY '';
+GRANT SELECT, INSERT, UPDATE ON unlost.users TO 'unlost_user'@'localhost';
+GRANT SELECT, INSERT, UPDATE, DELETE ON unlost.items TO 'unlost_user'@'localhost';
+FLUSH PRIVILEGES;
+SQL
 ```
 
-Test the account:
+Test the application account:
 
 ```bash
-mariadb -u unlost_user unlost -e "SELECT 1; SHOW TABLES;"
+mariadb -u unlost_user unlost -e "SHOW TABLES;"
 ```
 
-The application uses the local MariaDB account `unlost_user` with an empty password. This means the application does not prompt for a database password.
+The local application account has an empty database password to keep this local learning setup from prompting for a database password. Keep MariaDB bound to localhost and do not expose port 3306 to other computers or the internet. Do not use this passwordless account on a shared or production server.
 
-**Security:** This passwordless account is only for a local learning environment. Keep MariaDB accessible only from the same computer. Do not expose port 3306 to a network or the internet, and do not use this configuration on a shared or production server.
+## 4. Upgrade an existing UnLost database
 
-## 4. Install Apache Tomcat 10.1
+Use this section only when upgrading the earlier UnLost database that already has an `items` table.
 
-The project uses Jakarta Servlet 6 and requires Tomcat 10.1. The following commands install Tomcat in your home directory, so they work independently of the Linux distribution and do not require a system Tomcat package.
+First make a backup:
+
+```bash
+sudo mariadb-dump unlost > "$HOME/unlost-before-account-upgrade.sql"
+```
+
+Download the migration file:
+
+```bash
+curl -fL https://raw.githubusercontent.com/krish-62/UnLost/main/migration.sql -o migration.sql
+```
+
+Apply the migration once:
+
+```bash
+sudo mariadb < migration.sql
+```
+
+Grant the additional permissions required by the new account and report features:
+
+```bash
+sudo mariadb -e "GRANT SELECT, INSERT, UPDATE ON unlost.users TO 'unlost_user'@'localhost'; GRANT SELECT, INSERT, UPDATE, DELETE ON unlost.items TO 'unlost_user'@'localhost'; FLUSH PRIVILEGES;"
+```
+
+The migration preserves old reports and changes the earlier `Returned` status to `Resolved`. Reports created before accounts existed have no owner, so they remain visible while open but cannot be resolved or deleted through the account interface. After creating your account, you can optionally assign those older reports to it from MariaDB:
+
+```sql
+UPDATE unlost.items
+SET user_id = (SELECT id FROM unlost.users WHERE username = 'YOUR_USERNAME')
+WHERE user_id IS NULL;
+```
+
+Replace `YOUR_USERNAME` with the account that should own those earlier reports. Run this only if you are sure those unassigned reports belong to that account.
+
+Do not run `migration.sql` more than once on the same database. Fresh installations should use `database.sql`, not `migration.sql`.
+
+## 5. Install Apache Tomcat 10.1
+
+The project uses Jakarta Servlet 6 and requires Tomcat 10.1. These commands install Tomcat in your home directory, independently of the Linux distribution:
 
 ```bash
 TOMCAT_VERSION=10.1.61
@@ -138,77 +178,69 @@ mv "apache-tomcat-${TOMCAT_VERSION}" "$HOME/tomcat10"
 export CATALINA_HOME="$HOME/tomcat10"
 ```
 
-Keep using the same terminal for the remaining commands in this guide. If you open a new terminal later, set the Tomcat location again:
+If you open a new terminal later, set the Tomcat location again:
 
 ```bash
 export CATALINA_HOME="$HOME/tomcat10"
 ```
 
-## 5. Build the application
+## 6. Build the application
 
-From the project directory, run:
+From the project directory:
 
 ```bash
 mvn clean package
 ```
 
-When the build succeeds, Maven creates:
+Maven creates:
 
 ```text
 target/unlost.war
 ```
 
-## 6. Deploy and start UnLost
-
-Copy the generated WAR file into Tomcat's web application directory:
+## 7. Deploy and start UnLost
 
 ```bash
 cp target/unlost.war "$CATALINA_HOME/webapps/"
-```
-
-Start Tomcat:
-
-```bash
 "$CATALINA_HOME/bin/startup.sh"
 ```
 
-Tomcat automatically deploys the WAR file. Open the application in your browser:
+Open the website:
 
 ```text
 http://localhost:8080/unlost/
 ```
 
-Test the backend API:
+Open the sign-in and registration page:
+
+```text
+http://localhost:8080/unlost/auth.html
+```
+
+Open your report history after signing in:
+
+```text
+http://localhost:8080/unlost/my-reports.html
+```
+
+Test the public API:
 
 ```bash
 curl -i http://localhost:8080/unlost/api/items
 ```
 
-A successful API request returns `HTTP 200` and a JSON array. If there are no reports yet, the response is an empty array: `[]`.
-
-## 7. Stop Tomcat
-
-To stop the local server:
+## 8. Stop Tomcat
 
 ```bash
 "$CATALINA_HOME/bin/shutdown.sh"
 ```
 
-If you open a new terminal, set `CATALINA_HOME` again before using the Tomcat scripts.
-
-## 8. Updating the project
-
-When you want to download the latest repository changes:
+## 9. Update the project
 
 ```bash
 cd "$HOME/UnLost"
 git pull
 mvn clean package
-```
-
-If Tomcat is already running, stop it before replacing the WAR, remove the previously extracted application directory, copy the new WAR and start Tomcat again:
-
-```bash
 "$CATALINA_HOME/bin/shutdown.sh"
 rm -rf "$CATALINA_HOME/webapps/unlost"
 cp target/unlost.war "$CATALINA_HOME/webapps/"
@@ -217,34 +249,31 @@ cp target/unlost.war "$CATALINA_HOME/webapps/"
 
 ## Troubleshooting
 
-### MariaDB is not running
-
-On systemd-based distributions:
+Check MariaDB:
 
 ```bash
 sudo systemctl status mariadb
-sudo systemctl start mariadb
 ```
 
-### Check the database account and table
+Check the database tables:
 
 ```bash
-mariadb -u unlost_user unlost -e "SELECT COUNT(*) FROM items;"
+mariadb -u unlost_user unlost -e "SHOW TABLES;"
 ```
 
-### Check the API
+Check the public reports API:
 
 ```bash
 curl -i http://localhost:8080/unlost/api/items
 ```
 
-### Check whether port 8080 is already in use
+Check whether port 8080 is in use:
 
 ```bash
 ss -ltnp | grep ':8080'
 ```
 
-### View Tomcat logs
+View Tomcat logs:
 
 ```bash
 tail -n 100 "$CATALINA_HOME/logs/catalina.out"
@@ -255,16 +284,26 @@ tail -n 100 "$CATALINA_HOME/logs/catalina.out"
 ```text
 UnLost/
 ├── database.sql
+├── migration.sql
 ├── pom.xml
-├── src/main/java/com/unlost/
-│   ├── Database.java
-│   └── ItemServlet.java
-└── src/main/webapp/
-    ├── app.js
-    ├── index.html
-    └── style.css
+└── src/main/
+    ├── java/com/unlost/
+    │   ├── AuthServlet.java
+    │   ├── Database.java
+    │   ├── ItemServlet.java
+    │   └── PasswordUtil.java
+    └── webapp/
+        ├── app.js
+        ├── auth.html
+        ├── auth.js
+        ├── index.html
+        ├── my-reports.html
+        ├── my-reports.js
+        └── style.css
 ```
 
-## Project limitations
+## Security and project scope
 
-This is a learning project. It does not currently include user login or role-based access control. Anyone who can access the application can submit reports and change an item's status. Do not expose this instance to the public internet. Add authentication, authorization, input-abuse controls and appropriate privacy protections before deploying it for real campus-wide use.
+Passwords are stored as salted PBKDF2 hashes and are never stored as plain text. State-changing requests use a session CSRF token, and the backend checks the signed-in account's ID before resolving or deleting a report. Image uploads are limited to 5 MB and checked for JPG, PNG or WEBP file signatures.
+
+This is still a learning project. It does not yet include email verification, password reset, login rate limiting, account recovery or administrator moderation. The passwordless database account is intended only for a local machine. Use HTTPS, secure database credentials, rate limiting and a broader security review before deploying this application for public or campus-wide use.
