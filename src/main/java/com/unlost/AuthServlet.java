@@ -151,8 +151,9 @@ public class AuthServlet extends HttpServlet {
         String login = value(body, "login");
         String password = rawValue(body, "password");
 
-        if (login.isBlank() || password.isBlank()) {
-            sendError(response, 400, "Enter your username or email and password.");
+        if (login.isBlank() || password.isBlank()
+                || login.length() > 254 || password.length() > 128) {
+            sendError(response, 400, "Enter a valid username or email and password.");
             return;
         }
 
