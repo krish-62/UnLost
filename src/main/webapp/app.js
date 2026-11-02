@@ -6,6 +6,38 @@ const categoryFilter = document.getElementById("category-filter");
 const searchButton = document.getElementById("search-button");
 const reportForm = document.getElementById("report-form");
 const formMessage = document.getElementById("form-message");
+const imageInput = document.getElementById("image");
+const imagePreview = document.getElementById("image-preview");
+const loginRequired = document.getElementById("login-required");
+const authLink = document.getElementById("auth-link");
+const myReportsLink = document.getElementById("my-reports-link");
+const logoutButton = document.getElementById("logout-button");
+
+let csrfToken = null;
+let previewUrl = null;
+
+async function loadSession() {
+    try {
+        const response = await fetch("api/auth/me");
+        const result = await response.json();
+
+        if (result.authenticated) {
+            csrfToken = result.csrfToken;
+            authLink.textContent = result.user.username;
+            authLink.href = "my-reports.html";
+            myReportsLink.hidden = false;
+            logoutButton.hidden = false;
+            loginRequired.hidden = true;
+            reportForm.hidden = false;
+        } else {
+            loginRequired.hidden = false;
+            reportForm.hidden = true;
+        }
+    } catch (error) {
+        loginRequired.hidden = false;
+        reportForm.hidden = true;
+    }
+}
 
 async function loadItems() {
     itemsList.innerHTML = '<p class="message">Loading reports...</p>';
@@ -13,8 +45,7 @@ async function loadItems() {
     const params = new URLSearchParams({
         search: searchInput.value.trim(),
         type: typeFilter.value,
-        category: categoryFilter.value,
-        status: "Open"
+        category: categoryFilter.value
     });
 
     try {
@@ -24,8 +55,7 @@ async function loadItems() {
         const items = await response.json();
         showItems(items);
     } catch (error) {
-        itemsList.innerHTML =
-            '<p class="message">Could not load reports. Check that Tomcat and MySQL are running.</p>';
+        itemsList.innerHTML = '<p class="message">Could not load reports. Please try again.</p>';
         itemCount.textContent = "";
     }
 }
@@ -34,8 +64,7 @@ function showItems(items) {
     itemCount.textContent = `${items.length} report${items.length === 1 ? "" : "s"}`;
 
     if (items.length === 0) {
-        itemsList.innerHTML =
-            '<p class="message">No reports found. You can be the first to add one.</p>';
+        itemsList.innerHTML = '<p class="message">No open reports found.</p>';
         return;
     }
 
@@ -64,6 +93,17 @@ function showItems(items) {
         description.className = "description";
         description.textContent = item.description;
 
+        card.append(top, title, description);
+
+        if (item.has_image) {
+            const image = document.createElement("img");
+            image.className = "item-image";
+            image.src = `api/items/${item.id}/image`;
+            image.alt = `Photo of ${item.name}`;
+            image.loading = "lazy";
+            card.appendChild(image);
+        }
+
         const details = document.createElement("div");
         details.className = "item-details";
 
@@ -76,18 +116,11 @@ function showItems(items) {
         const contact = document.createElement("p");
         contact.textContent = `Contact: ${item.contact}`;
 
-        details.append(location, date, contact);
-        card.append(top, title, description, details);
+        const reporter = document.createElement("p");
+        reporter.textContent = `Reported by: ${item.reporter || "Campus member"}`;
 
-        const returnedButton = document.createElement("button");
-        returnedButton.className = "return-button";
-        returnedButton.type = "button";
-        returnedButton.textContent = "Mark as returned";
-        returnedButton.addEventListener("click", function() {
-            markReturned(item.id);
-        });
-
-        card.appendChild(returnedButton);
+        details.append(location, date, contact, reporter);
+        card.appendChild(details);
         itemsList.appendChild(card);
     });
 }
@@ -99,13 +132,12 @@ reportForm.addEventListener("submit", async function(event) {
     formMessage.className = "form-message";
 
     const formData = new FormData(reportForm);
-    const item = Object.fromEntries(formData.entries());
 
     try {
         const response = await fetch("api/items", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(item)
+            headers: { "X-CSRF-Token": csrfToken },
+            body: formData
         });
 
         const result = await response.json();
@@ -114,6 +146,7 @@ reportForm.addEventListener("submit", async function(event) {
         formMessage.textContent = "Your report has been added.";
         formMessage.classList.add("success");
         reportForm.reset();
+        clearPreview();
 
         searchInput.value = "";
         typeFilter.value = "All";
@@ -127,22 +160,41 @@ reportForm.addEventListener("submit", async function(event) {
     }
 });
 
-async function markReturned(id) {
-    if (!confirm("Has this item been returned to its owner?")) return;
-
-    try {
-        const response = await fetch(`api/items/${id}/returned`, {
-            method: "PATCH"
-        });
-
-        const result = await response.json();
-        if (!response.ok) throw new Error(result.error || "Could not update item.");
-
-        await loadItems();
-    } catch (error) {
-        alert(error.message);
-    }
+function clearPreview() {
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+    previewUrl = null;
+    imagePreview.removeAttribute("src");
+    imagePreview.hidden = true;
 }
+
+imageInput.addEventListener("change", function() {
+    clearPreview();
+    const file = imageInput.files[0];
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+        formMessage.textContent = "Image must be 5 MB or smaller.";
+        formMessage.className = "form-message error";
+        imageInput.value = "";
+        return;
+    }
+
+    previewUrl = URL.createObjectURL(file);
+    imagePreview.src = previewUrl;
+    imagePreview.hidden = false;
+});
+
+logoutButton.addEventListener("click", async function() {
+    try {
+        await fetch("api/auth/logout", {
+            method: "POST",
+            headers: { "X-CSRF-Token": csrfToken }
+        });
+        window.location.href = "index.html";
+    } catch (error) {
+        window.location.href = "index.html";
+    }
+});
 
 searchButton.addEventListener("click", loadItems);
 typeFilter.addEventListener("change", loadItems);
@@ -155,4 +207,5 @@ searchInput.addEventListener("keydown", function(event) {
     }
 });
 
+loadSession();
 loadItems();
