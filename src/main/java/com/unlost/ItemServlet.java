@@ -1,6 +1,5 @@
 package com.unlost;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.MultipartConfig;
@@ -11,6 +10,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.Part;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.Date;
 import java.sql.PreparedStatement;
@@ -148,12 +148,17 @@ public class ItemServlet extends HttpServlet {
             statement.setInt(2, userId == null ? -1 : userId);
 
             try (ResultSet result = statement.executeQuery()) {
-                if (!result.next() || result.getBytes("image_data") == null) {
+                if (!result.next()) {
                     response.sendError(HttpServletResponse.SC_NOT_FOUND);
                     return;
                 }
 
                 byte[] image = result.getBytes("image_data");
+                if (image == null) {
+                    response.sendError(HttpServletResponse.SC_NOT_FOUND);
+                    return;
+                }
+
                 response.setContentType(result.getString("image_type"));
                 response.setContentLength(image.length);
                 response.setHeader("X-Content-Type-Options", "nosniff");
@@ -223,7 +228,10 @@ public class ItemServlet extends HttpServlet {
                     return;
                 }
 
-                imageData = imagePart.getInputStream().readNBytes(MAX_IMAGE_SIZE + 1);
+                try (InputStream input = imagePart.getInputStream()) {
+                    imageData = input.readNBytes(MAX_IMAGE_SIZE + 1);
+                }
+
                 if (imageData.length > MAX_IMAGE_SIZE) {
                     sendError(response, 413, "Image must be 5 MB or smaller.");
                     return;
