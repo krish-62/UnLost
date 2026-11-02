@@ -42,6 +42,11 @@ public class ItemServlet extends HttpServlet {
             return;
         }
 
+        if (path != null && !path.isEmpty() && !"/mine".equals(path)) {
+            sendError(response, 404, "Endpoint not found.");
+            return;
+        }
+
         if ("/mine".equals(path)) {
             Integer userId = AuthServlet.currentUserId(request);
             if (userId == null) {
@@ -59,6 +64,8 @@ public class ItemServlet extends HttpServlet {
                           boolean mine, Integer userId) throws IOException {
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
+
+        response.setHeader("Cache-Control", "no-store");
 
         String search = request.getParameter("search");
         String type = request.getParameter("type");
@@ -136,7 +143,14 @@ public class ItemServlet extends HttpServlet {
 
     private void getImage(HttpServletRequest request, HttpServletResponse response, String path)
             throws IOException {
-        int id = Integer.parseInt(path.split("/")[1]);
+        int id;
+        try {
+            id = Integer.parseInt(path.split("/")[1]);
+        } catch (NumberFormatException e) {
+            response.sendError(HttpServletResponse.SC_NOT_FOUND);
+            return;
+        }
+
         Integer userId = AuthServlet.currentUserId(request);
 
         String sql = "SELECT image_data, image_type FROM items " +
@@ -162,7 +176,7 @@ public class ItemServlet extends HttpServlet {
                 response.setContentType(result.getString("image_type"));
                 response.setContentLength(image.length);
                 response.setHeader("X-Content-Type-Options", "nosniff");
-                response.setHeader("Cache-Control", "private, max-age=300");
+                response.setHeader("Cache-Control", "no-store");
                 response.getOutputStream().write(image);
             }
         } catch (SQLException e) {
@@ -176,6 +190,12 @@ public class ItemServlet extends HttpServlet {
             throws IOException, ServletException {
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
+
+        String requestPath = request.getPathInfo();
+        if (requestPath != null && !requestPath.isEmpty()) {
+            sendError(response, 404, "Endpoint not found.");
+            return;
+        }
 
         Integer userId = AuthServlet.currentUserId(request);
         if (userId == null) {
@@ -325,7 +345,13 @@ public class ItemServlet extends HttpServlet {
             return;
         }
 
-        int id = Integer.parseInt(path.split("/")[1]);
+        int id;
+        try {
+            id = Integer.parseInt(path.split("/")[1]);
+        } catch (NumberFormatException e) {
+            sendError(response, 400, "Invalid report address.");
+            return;
+        }
 
         try (Connection connection = Database.getConnection();
              PreparedStatement statement = connection.prepareStatement(
@@ -369,7 +395,13 @@ public class ItemServlet extends HttpServlet {
             return;
         }
 
-        int id = Integer.parseInt(path.substring(1));
+        int id;
+        try {
+            id = Integer.parseInt(path.substring(1));
+        } catch (NumberFormatException e) {
+            sendError(response, 400, "Invalid report address.");
+            return;
+        }
 
         try (Connection connection = Database.getConnection();
              PreparedStatement statement = connection.prepareStatement(
@@ -432,6 +464,9 @@ public class ItemServlet extends HttpServlet {
 
     private void sendError(HttpServletResponse response, int status, String message)
             throws IOException {
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+        response.setHeader("Cache-Control", "no-store");
         response.setStatus(status);
         mapper.writeValue(response.getWriter(), Map.of("error", message));
     }
