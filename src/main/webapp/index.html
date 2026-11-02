@@ -9,10 +9,13 @@
 <body>
     <header class="site-header">
         <div class="header-inner">
-            <a class="logo" href="#">Un<span>Lost</span></a>
+            <a class="logo" href="index.html">Un<span>Lost</span></a>
             <nav>
                 <a href="#items">Browse items</a>
                 <a href="#report">Report an item</a>
+                <a id="auth-link" href="auth.html">Sign in</a>
+                <a id="my-reports-link" href="my-reports.html" hidden>My reports</a>
+                <button id="logout-button" class="text-button" type="button" hidden>Sign out</button>
             </nav>
         </div>
     </header>
@@ -67,7 +70,13 @@
                 <div class="small-note">Please avoid posting passwords, full ID numbers, or other sensitive details.</div>
             </div>
 
-            <form id="report-form" class="report-form">
+            <div id="login-required" class="login-required">
+                <h3>Sign in to submit a report</h3>
+                <p>Your reports stay linked to your account, so only you can resolve or delete them.</p>
+                <a class="primary-button" href="auth.html">Sign in or create an account</a>
+            </div>
+
+            <form id="report-form" class="report-form" hidden>
                 <div class="form-row">
                     <div class="field">
                         <label for="type">Report type *</label>
@@ -119,6 +128,12 @@
                         <input id="contact" name="contact" maxlength="120"
                             placeholder="Email or phone number" required>
                     </div>
+                </div>
+
+                <div class="field">
+                    <label for="image">Item photo (JPG, PNG or WEBP, up to 5 MB)</label>
+                    <input id="image" name="image" type="file" accept="image/jpeg,image/png,image/webp">
+                    <img id="image-preview" class="image-preview" alt="Selected item preview" hidden>
                 </div>
 
                 <button class="primary-button" type="submit">Submit report</button>
