@@ -106,3 +106,95 @@ footer p { margin: 4px 0; }
     .page-section, .report-section { padding: 45px 18px; }
     .report-form { padding: 18px; }
 }
+
+
+.text-button {
+    border: 0;
+    background: none;
+    color: #45524b;
+    font: inherit;
+    font-size: 14px;
+    cursor: pointer;
+    padding: 0;
+}
+.text-button:hover { color: var(--green); }
+[hidden] { display: none !important; }
+.login-required {
+    background: white;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 26px;
+    align-self: start;
+}
+.login-required p { color: var(--muted); }
+.image-preview {
+    display: block;
+    max-width: 260px;
+    max-height: 220px;
+    object-fit: contain;
+    margin-top: 12px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+}
+.item-image {
+    display: block;
+    width: 100%;
+    max-height: 230px;
+    object-fit: contain;
+    background: #f4f6f2;
+    border-radius: 7px;
+    margin: 4px 0 14px;
+}
+.auth-page { min-height: 100vh; background: var(--cream); }
+.auth-main {
+    min-height: calc(100vh - 150px);
+    display: grid;
+    place-items: center;
+    padding: 42px 20px;
+}
+.auth-card {
+    width: min(100%, 460px);
+    background: white;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 32px;
+}
+.auth-card h1 { font-size: 32px; margin: 0; }
+.auth-subtitle { color: var(--muted); margin: 8px 0 22px; }
+.auth-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 24px; }
+.auth-tab {
+    border: 1px solid var(--line);
+    background: white;
+    border-radius: 6px;
+    padding: 10px;
+    cursor: pointer;
+    font: inherit;
+}
+.auth-tab.active { color: var(--green-dark); border-color: var(--green); background: #f0f8f3; }
+.full-button { width: 100%; }
+.field small { display: block; margin-top: 6px; color: var(--muted); font-size: 12px; }
+.auth-card .field { margin-bottom: 18px; }
+.section-description { color: var(--muted); margin-top: 8px; }
+.status-open, .status-resolved {
+    padding: 5px 9px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+}
+.status-open { color: #216247; background: #e6f5eb; }
+.status-resolved { color: #5c6470; background: #edf0f3; }
+.delete-button {
+    border: 1px solid #e7c5c2;
+    color: #a43f38;
+    background: #fff7f6;
+    border-radius: 5px;
+    padding: 8px 10px;
+    margin-top: 9px;
+    cursor: pointer;
+    font: inherit;
+    font-size: 12px;
+    font-weight: 700;
+}
+@media (max-width: 520px) {
+    .auth-card { padding: 22px; }
+}
