@@ -5,14 +5,9 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 
 public final class Database {
-    private static final String URL = envOrDefault(
-            "UNLOST_DB_URL",
-            "jdbc:mysql://localhost:3306/unlost?useSSL=false&serverTimezone=UTC"
-    );
-    private static final String USER = envOrDefault(
-            "UNLOST_DB_USER",
-            "unlost_user"
-    );
+    private static final String URL =
+            "jdbc:mysql://localhost:3306/unlost?useSSL=false&serverTimezone=UTC";
+    private static final String USER = "unlost_user";
 
     private Database() {
     }
@@ -25,10 +20,5 @@ public final class Database {
         }
 
         return DriverManager.getConnection(URL, USER, "");
-    }
-
-    private static String envOrDefault(String name, String defaultValue) {
-        String value = System.getenv(name);
-        return value == null || value.isBlank() ? defaultValue : value;
     }
 }
