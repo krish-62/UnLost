@@ -116,6 +116,24 @@ sudo mariadb -e "GRANT SELECT, INSERT, UPDATE ON unlost.users TO 'unlost_user'@'
 
 The migration keeps old reports, but reports created before accounts existed have no owner. They stay public while open and cannot be managed from an account until an owner is assigned. Do not run the migration more than once.
 
+## Moving your existing demo data to another computer
+
+On the computer where UnLost is already running, create a database backup:
+
+```bash
+sudo mariadb-dump --single-transaction --databases unlost > "$HOME/unlost-demo.sql"
+```
+
+Copy `unlost-demo.sql` to the presentation computer using a USB drive or another private method. On the presentation computer, install MariaDB and import the backup:
+
+```bash
+sudo mariadb < unlost-demo.sql
+```
+
+Create the `unlost_user` database account and grants using the commands in the database setup section above. Do not run `database.sql` before importing this full backup because the backup already contains the database tables and their data.
+
+Keep the backup private because it contains the user accounts, password hashes and reports from your demo database. Do not upload it to GitHub.
+
 ## 3. Install Apache Tomcat 10.1
 
 The application uses Jakarta Servlet 6.0, so use Tomcat 10.1.
