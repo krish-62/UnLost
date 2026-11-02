@@ -161,7 +161,7 @@ public class AuthServlet extends HttpServlet {
                      "SELECT id, username, email, password_hash FROM users " +
                      "WHERE username = ? OR email = ? LIMIT 1")) {
             statement.setString(1, login);
-            statement.setString(2, login.toLowerCase());
+            statement.setString(2, login.toLowerCase(Locale.ROOT));
 
             try (ResultSet result = statement.executeQuery()) {
                 if (!result.next() || !PasswordUtil.verify(password, result.getString("password_hash"))) {
@@ -265,6 +265,9 @@ public class AuthServlet extends HttpServlet {
 
     private void sendError(HttpServletResponse response, int status, String message)
             throws IOException {
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+        response.setHeader("Cache-Control", "no-store");
         response.setStatus(status);
         mapper.writeValue(response.getWriter(), Map.of("error", message));
     }
